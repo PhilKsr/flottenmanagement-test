@@ -1,7 +1,7 @@
 export default interface Vehicle {
-  _id: string;
+  id: number;
   name: string;
-  fahrzeugtyp: string;
+  fahrzeugtypId: number;
   gewicht: number;
   istFahrbereit: boolean;
   anzahlAchsen: number;

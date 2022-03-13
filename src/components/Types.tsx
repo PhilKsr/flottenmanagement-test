@@ -10,14 +10,11 @@ import FormModal from "./Modal";
 
 interface Props {
   vehicleTypes: VehicleType[];
-  updateLocalVehicleTypes: Function;
+  updateVehicleTypes: Function;
 }
 
-export default function Types({
-  vehicleTypes,
-  updateLocalVehicleTypes,
-}: Props) {
-  const [newVehicleType, setNewVehicleType] = useState({ name: "" });
+export default function Types({ vehicleTypes, updateVehicleTypes }: Props) {
+  const [newVehicleType, setNewVehicleType] = useState({ name: "", id: 0 });
   const [visible, setVisible] = useState(false);
 
   const showModal = () => {
@@ -26,12 +23,8 @@ export default function Types({
 
   const handleVehicleTypeAdd = () => {
     //AD TO DB
-    //saveVehicleType(vehicleType);
-    const updatedNewVehicleType = {
-      ...newVehicleType,
-      _id: Date.now().toString(),
-    };
-    updateLocalVehicleTypes([...vehicleTypes, newVehicleType]);
+    saveVehicleType(newVehicleType);
+    updateVehicleTypes(newVehicleType);
   };
 
   const handleCancel = () => {
@@ -86,24 +79,24 @@ export default function Types({
   };
 
   const [form] = Form.useForm();
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<number>(0);
 
-  const isEditing = (record: VehicleType) => record._id === editingKey;
+  const isEditing = (record: VehicleType) => record.id === editingKey;
 
   const edit = (record: VehicleType) => {
     form.setFieldsValue({ ...record });
-    setEditingKey(record._id);
+    setEditingKey(record.id);
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(0);
   };
-  const save = async (key: string) => {
+  const save = async (key: number) => {
     try {
       let row = (await form.validateFields()) as VehicleType;
 
       const newData = [...vehicleTypes];
-      const index = newData.findIndex((item) => key === item._id);
+      const index = newData.findIndex((item) => key === item.id);
 
       if (index > -1) {
         const item = newData[index];
@@ -112,24 +105,19 @@ export default function Types({
           ...row,
         });
         // UPDATE TO DB
-        // updateVehicleType(newData[index]);
-        updateLocalVehicleTypes(newData);
-        setEditingKey("");
+        updateVehicleType(newData[index]);
+        updateVehicleTypes(newData);
+        setEditingKey(0);
       } else {
         newData.push(row);
         // UPDATE TO DB
-        // updateVehicleType(newData[index]);
-        updateLocalVehicleTypes(newData);
-        setEditingKey("");
+        updateVehicleType(newData[index]);
+        updateVehicleTypes(newData);
+        setEditingKey(0);
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
-  };
-
-  const onDelete = (record: VehicleType) => {
-    const newData = [...vehicleTypes].filter((data) => data._id !== record._id);
-    updateLocalVehicleTypes(newData);
   };
 
   const columns = [
@@ -148,7 +136,7 @@ export default function Types({
         return editable ? (
           <span>
             <Typography.Link
-              onClick={() => save(record._id)}
+              onClick={() => save(record.id)}
               style={{ marginRight: 8 }}>
               Save
             </Typography.Link>
@@ -160,15 +148,17 @@ export default function Types({
           <>
             <Typography.Link
               className='mr-8'
-              disabled={editingKey !== ""}
+              disabled={editingKey !== 0}
               onClick={() => edit(record)}>
               Edit
             </Typography.Link>
             <Typography.Link
               onClick={() => {
                 // DELETE FROM DB
-                //deleteVehicleType(record);
-                onDelete(record);
+                deleteVehicleType(record);
+                updateVehicleTypes(
+                  vehicleTypes.filter((type) => type.id !== record.id)
+                );
               }}>
               Delete
             </Typography.Link>

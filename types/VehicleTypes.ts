@@ -1,4 +1,4 @@
 export default interface VehicleType {
-  _id: string;
+  id: number;
   name: string;
 }

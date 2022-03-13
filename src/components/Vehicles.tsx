@@ -18,17 +18,17 @@ import { deleteVehicle, saveVehicle, updateVehicle } from "../lib/CRUD";
 interface Props {
   vehicles: Vehicle[];
   vehicleTypes: VehicleType[];
-  updateLocalVehicles: Function;
+  updateVehicles: Function;
 }
 
 export default function Vehicles({
   vehicles,
   vehicleTypes,
-  updateLocalVehicles,
+  updateVehicles,
 }: Props) {
   const [newVehicle, setNewVehicle] = useState({
     name: "",
-    fahrzeugtyp: "",
+    fahrzeugtypId: 0,
     erstzulassung: "",
     gewicht: 0,
     istFahrbereit: false,
@@ -43,7 +43,6 @@ export default function Vehicles({
         ...newVehicle,
         [e.target.name]: e.target.checked ? true : false,
       });
-      console.log(e.target.value);
     } else {
       setNewVehicle({ ...newVehicle, [e.target.name]: e.target.value });
     }
@@ -55,10 +54,8 @@ export default function Vehicles({
   };
 
   const handleVehicleAdd = () => {
-    // SAVE TO DB
-    // saveVehicle(newVehicle);
-    const newUpdatedVehicle = { ...newVehicle, _id: Date.now().toString() };
-    updateLocalVehicles([...vehicles, newUpdatedVehicle]);
+    saveVehicle(newVehicle);
+    updateVehicles(newVehicle);
   };
 
   const handleCancel = () => {
@@ -89,7 +86,7 @@ export default function Vehicles({
       ) : inputType === "select" ? (
         <Select>
           {vehicleTypes.map((type) => (
-            <option key={type._id} value={type._id}>
+            <option key={type.id} value={type.id}>
               {type.name}
             </option>
           ))}
@@ -123,24 +120,24 @@ export default function Vehicles({
   };
 
   const [form] = Form.useForm();
-  const [editingKey, setEditingKey] = useState("");
+  const [editingKey, setEditingKey] = useState<number>();
 
-  const isEditing = (record: Vehicle) => record._id === editingKey;
+  const isEditing = (record: Vehicle) => record.id === editingKey;
 
   const edit = (record: Vehicle) => {
     form.setFieldsValue({ ...record });
-    setEditingKey(record._id);
+    setEditingKey(record.id);
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditingKey(0);
   };
-  const save = async (key: string) => {
+  const save = async (key: number) => {
     try {
       let row = (await form.validateFields()) as Vehicle;
 
       const newData = [...vehicles];
-      const index = newData.findIndex((item) => key === item._id);
+      const index = newData.findIndex((item) => key === item.id);
       const checkbox: HTMLInputElement | null =
         document.querySelector("#istFahrbereit");
       row = { ...row, istFahrbereit: checkbox?.checked ? true : false };
@@ -152,24 +149,19 @@ export default function Vehicles({
           ...row,
         });
         // UPDATE TO DB
-        // updateVehicle(newData[index]);
-        updateLocalVehicles(newData);
-        setEditingKey("");
+        updateVehicle(newData[index]);
+        updateVehicles(newData);
+        setEditingKey(0);
       } else {
         newData.push(row);
         // UPDATE TO DB
-        // updateVehicle(newData[index]);
-        updateLocalVehicles(newData);
-        setEditingKey("");
+        updateVehicle(newData[index]);
+        updateVehicles(newData);
+        setEditingKey(0);
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
-  };
-
-  const onDelete = (record: Vehicle) => {
-    const newData = [...vehicles].filter((data) => data._id !== record._id);
-    updateLocalVehicles(newData);
   };
 
   const columns = [
@@ -199,10 +191,10 @@ export default function Vehicles({
     },
     {
       title: "Fahrzeugtyp",
-      dataIndex: "fahrzeugtyp",
-      key: "fahrzeugtyp",
-      render: (fahrzeugtyp: string) => (
-        <>{vehicleTypes.find((type) => type._id === fahrzeugtyp)?.name}</>
+      dataIndex: "fahrzeugtypId",
+      key: "fahrzeugtypId",
+      render: (fahrzeugtypId: number) => (
+        <>{vehicleTypes.find((type) => type.id === fahrzeugtypId)}</>
       ),
       editable: true,
     },
@@ -221,7 +213,7 @@ export default function Vehicles({
         return editable ? (
           <span>
             <Typography.Link
-              onClick={() => save(record._id)}
+              onClick={() => save(record.id)}
               style={{ marginRight: 8 }}>
               Save
             </Typography.Link>
@@ -233,15 +225,17 @@ export default function Vehicles({
           <>
             <Typography.Link
               className='mr-8'
-              disabled={editingKey !== ""}
+              disabled={editingKey !== 0}
               onClick={() => edit(record)}>
               Edit
             </Typography.Link>
             <Typography.Link
               onClick={() => {
                 // Delete from DB
-                //deleteVehicle(record);
-                onDelete(record);
+                deleteVehicle(record);
+                updateVehicles(
+                  vehicles.filter((vehicle) => vehicle.id !== record.id)
+                );
               }}>
               Delete
             </Typography.Link>
@@ -262,7 +256,7 @@ export default function Vehicles({
         inputType:
           col.dataIndex === "istFahrbereit"
             ? "checkbox"
-            : col.dataIndex === "fahrzeugtyp"
+            : col.dataIndex === "fahrzeugtypId"
             ? "select"
             : col.dataIndex === "name"
             ? "text"
