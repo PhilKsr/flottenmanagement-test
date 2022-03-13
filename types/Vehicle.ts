@@ -1,7 +1,9 @@
+import VehicleType from "./VehicleType";
+
 export default interface Vehicle {
   id: number;
   name: string;
-  fahrzeugtypId: number;
+  fahrzeugtyp: VehicleType;
   gewicht: number;
   istFahrbereit: boolean;
   anzahlAchsen: number;

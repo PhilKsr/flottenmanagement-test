@@ -1,5 +1,5 @@
 import { Checkbox, Form, Input } from "antd";
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 
 interface Props {
   handleChange: Function;
@@ -86,7 +86,7 @@ export default function VehicleForm({ handleChange, vehicleTypes }: Props) {
         />
       </Form.Item>
       <Form.Item
-        name='fahrzeugtypId'
+        name='fahrzeugtyp'
         label='Fahrzeugtyp'
         rules={[
           {
@@ -94,16 +94,20 @@ export default function VehicleForm({ handleChange, vehicleTypes }: Props) {
           },
         ]}>
         <select name='fahrzeugtypId' onChange={(e: any) => handleChange(e)}>
-          {/*           <option placeholder='Wähle den Fahrzeugtyp'>
+          <option placeholder='Wähle den Fahrzeugtyp'>
             Wähle den Fahrzeugtyp
-          </option> */}
+          </option>
           {vehicleTypes?.map((type) => (
             <option value={type.id}>{type.name}</option>
           ))}
         </select>
       </Form.Item>
       <Form.Item name='istFahrbereit' label='Fahrbereit?'>
-        <Checkbox name='istFahrbereit' onChange={(e) => handleChange(e)} />
+        <Checkbox
+          defaultChecked={false}
+          name='istFahrbereit'
+          onChange={(e) => handleChange(e)}
+        />
       </Form.Item>
     </Form>
   );

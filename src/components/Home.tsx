@@ -1,5 +1,5 @@
 import Vehicle from "../../types/Vehicle";
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 
 interface Props {
   vehicles: Vehicle[];
@@ -16,7 +16,7 @@ export default function Home({ vehicles, vehicleTypes }: Props) {
           <span className=' basis-9/12'>{type.name}</span>
           <ul className='flex flex-col basis-4/12'>
             {vehicles
-              .filter((vehicle) => vehicle.fahrzeugtypId === type.id)
+              .filter((vehicle) => vehicle.fahrzeugtyp.id === type.id)
               .map((vehicle) => (
                 <>
                   <li key={vehicle.id}>{vehicle.name}</li>

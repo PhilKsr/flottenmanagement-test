@@ -1,5 +1,5 @@
 import { Checkbox, DatePicker, Form, Input, InputNumber, Select } from "antd";
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 
 interface Props {
   handleChange: Function;

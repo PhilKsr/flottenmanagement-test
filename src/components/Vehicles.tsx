@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Vehicle from "../../types/Vehicle";
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 import {
   Table,
   Input,
@@ -9,7 +9,6 @@ import {
   Form,
   Typography,
   Checkbox,
-  Select,
 } from "antd";
 import FormModal from "./Modal";
 
@@ -18,13 +17,13 @@ import { deleteVehicle, saveVehicle, updateVehicle } from "../lib/CRUD";
 interface Props {
   vehicles: Vehicle[];
   vehicleTypes: VehicleType[];
-  updateVehicles: Function;
+  setInitials: Function;
 }
 
 export default function Vehicles({
   vehicles,
   vehicleTypes,
-  updateVehicles,
+  setInitials,
 }: Props) {
   const [newVehicle, setNewVehicle] = useState({
     name: "",
@@ -37,15 +36,18 @@ export default function Vehicles({
   });
 
   const handleNewVehicleChange = (e: any) => {
-    console.log(e);
     if (e.target.name === "istFahrbereit") {
       setNewVehicle({
         ...newVehicle,
         [e.target.name]: e.target.checked ? true : false,
       });
+    } else if (e.target.name === "fahrzeugtypId") {
+      const updatedFahrzeugtyp = Number(e.target.value);
+      setNewVehicle({ ...newVehicle, fahrzeugtypId: updatedFahrzeugtyp });
     } else {
       setNewVehicle({ ...newVehicle, [e.target.name]: e.target.value });
     }
+    console.log(newVehicle);
   };
 
   const [visible, setVisible] = useState(false);
@@ -53,9 +55,10 @@ export default function Vehicles({
     setVisible(!visible);
   };
 
-  const handleVehicleAdd = () => {
-    saveVehicle(newVehicle);
-    updateVehicles(newVehicle);
+  const handleVehicleAdd = async () => {
+    await saveVehicle(newVehicle);
+    setInitials();
+    showModal();
   };
 
   const handleCancel = () => {
@@ -84,13 +87,13 @@ export default function Vehicles({
       inputType === "checkbox" ? (
         <Checkbox defaultChecked={record.istFahrbereit ? true : false} />
       ) : inputType === "select" ? (
-        <Select>
+        <select name={record.fahrzeugtyp.name}>
           {vehicleTypes.map((type) => (
             <option key={type.id} value={type.id}>
               {type.name}
             </option>
           ))}
-        </Select>
+        </select>
       ) : inputType === "text" ? (
         <Input />
       ) : (
@@ -120,12 +123,13 @@ export default function Vehicles({
   };
 
   const [form] = Form.useForm();
-  const [editingKey, setEditingKey] = useState<number>();
+  const [editingKey, setEditingKey] = useState<number>(0);
 
   const isEditing = (record: Vehicle) => record.id === editingKey;
 
   const edit = (record: Vehicle) => {
     form.setFieldsValue({ ...record });
+
     setEditingKey(record.id);
   };
 
@@ -134,13 +138,15 @@ export default function Vehicles({
   };
   const save = async (key: number) => {
     try {
-      let row = (await form.validateFields()) as Vehicle;
-
+      let row: any = (await form.validateFields()) as Vehicle;
       const newData = [...vehicles];
       const index = newData.findIndex((item) => key === item.id);
+      row.fahrzeugtypId = Number(row.fahrzeugtyp);
+      console.log(row);
+
       const checkbox: HTMLInputElement | null =
         document.querySelector("#istFahrbereit");
-      row = { ...row, istFahrbereit: checkbox?.checked ? true : false };
+      row.istFahrbereit = checkbox?.checked ? true : false;
 
       if (index > -1) {
         const item = newData[index];
@@ -150,18 +156,23 @@ export default function Vehicles({
         });
         // UPDATE TO DB
         updateVehicle(newData[index]);
-        updateVehicles(newData);
+        setInitials();
         setEditingKey(0);
       } else {
         newData.push(row);
         // UPDATE TO DB
         updateVehicle(newData[index]);
-        updateVehicles(newData);
+        setInitials();
         setEditingKey(0);
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+  };
+
+  const handleDelete = async (record: Vehicle) => {
+    await deleteVehicle(record);
+    setInitials();
   };
 
   const columns = [
@@ -191,11 +202,9 @@ export default function Vehicles({
     },
     {
       title: "Fahrzeugtyp",
-      dataIndex: "fahrzeugtypId",
-      key: "fahrzeugtypId",
-      render: (fahrzeugtypId: number) => (
-        <>{vehicleTypes.find((type) => type.id === fahrzeugtypId)}</>
-      ),
+      dataIndex: "fahrzeugtyp",
+      key: "fahrzeugtyp",
+      render: (fahrzeugtyp: VehicleType) => fahrzeugtyp.name,
       editable: true,
     },
     {
@@ -232,10 +241,7 @@ export default function Vehicles({
             <Typography.Link
               onClick={() => {
                 // Delete from DB
-                deleteVehicle(record);
-                updateVehicles(
-                  vehicles.filter((vehicle) => vehicle.id !== record.id)
-                );
+                handleDelete(record);
               }}>
               Delete
             </Typography.Link>
@@ -256,7 +262,7 @@ export default function Vehicles({
         inputType:
           col.dataIndex === "istFahrbereit"
             ? "checkbox"
-            : col.dataIndex === "fahrzeugtypId"
+            : col.dataIndex === "fahrzeugtyp"
             ? "select"
             : col.dataIndex === "name"
             ? "text"

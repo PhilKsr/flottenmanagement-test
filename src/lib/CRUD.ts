@@ -1,5 +1,5 @@
 import Vehicle from "../../types/Vehicle";
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 
 export const saveVehicle = async (vehicle: any) => {
   const result = await fetch("http://localhost:3001/vehicles", {
@@ -36,24 +36,21 @@ export const getVehicleTypes = async () => {
 };
 
 export const updateVehicle = async (vehicle: Vehicle) => {
-  const result = await fetch(
-    `https://flottenmanagement.staging.dev.frachtwerk.de/v1/fahrzeug/${vehicle.id}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(vehicle),
-    }
-  );
+  const result = await fetch(`http://localhost:3001/vehicles/${vehicle.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(vehicle),
+  });
   return await result.json();
 };
 
 export const updateVehicleType = async (vehicleType: VehicleType) => {
   const result = await fetch(
-    `https://flottenmanagement.staging.dev.frachtwerk.de/v1/fahrzeugtyp/${vehicleType.id}`,
+    `http://localhost:3001/vehicle-types/${vehicleType.id}`,
     {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -64,22 +61,19 @@ export const updateVehicleType = async (vehicleType: VehicleType) => {
 };
 
 export const deleteVehicle = async (vehicle: Vehicle) => {
-  const result = await fetch(
-    `https://flottenmanagement.staging.dev.frachtwerk.de/v1/fahrzeug/${vehicle.id}`,
-    {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(vehicle),
-    }
-  );
+  const result = await fetch(`http://localhost:3001/vehicles/${vehicle.id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(vehicle),
+  });
   return await result.json();
 };
 
 export const deleteVehicleType = async (vehicleType: VehicleType) => {
   const result = await fetch(
-    `https://flottenmanagement.staging.dev.frachtwerk.de/v1/fahrzeugtyp/${vehicleType.id}`,
+    `http://localhost:3001/vehicle-types/${vehicleType.id}`,
     {
       method: "DELETE",
       headers: {

@@ -1,5 +1,5 @@
 import { Modal, Button } from "antd";
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 import VehicleForm from "./VehicleForm";
 import VehicleTypeForm from "./VehicleTypeForm";
 

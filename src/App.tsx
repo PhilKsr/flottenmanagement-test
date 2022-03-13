@@ -5,7 +5,7 @@ import Vehicles from "./components/Vehicles";
 import Types from "./components/Types";
 import Navbar from "./components/Navbar";
 import Vehicle from "../types/Vehicle";
-import VehicleType from "../types/VehicleTypes";
+import VehicleType from "../types/VehicleType";
 import { getVehicles, getVehicleTypes } from "./lib/CRUD";
 
 function App() {
@@ -13,15 +13,17 @@ function App() {
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
-  // INITIALE DATEN:
-  useEffect(() => {
+  const setInitials = () => {
     Promise.all([getVehicleTypes(), getVehicles()]).then(
       (data: [VehicleType[], Vehicle[]]) => {
-        console.log(data);
         setVehicleTypes(data[0]);
         setVehicles(data[1]);
       }
     );
+  };
+  // INITIALE DATEN:
+  useEffect(() => {
+    setInitials();
   }, []);
 
   const updateVehicles = (update: any) => {
@@ -45,17 +47,14 @@ function App() {
             <Vehicles
               vehicles={vehicles}
               vehicleTypes={vehicleTypes}
-              updateVehicles={updateVehicles}
+              setInitials={setInitials}
             />
           }
         />
         <Route
           path='/vehicletypes'
           element={
-            <Types
-              vehicleTypes={vehicleTypes}
-              updateVehicleTypes={updateVehicleTypes}
-            />
+            <Types vehicleTypes={vehicleTypes} setInitials={setInitials} />
           }
         />
       </Routes>

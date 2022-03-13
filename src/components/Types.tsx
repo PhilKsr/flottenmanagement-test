@@ -1,4 +1,4 @@
-import VehicleType from "../../types/VehicleTypes";
+import VehicleType from "../../types/VehicleType";
 import {
   deleteVehicleType,
   saveVehicleType,
@@ -10,21 +10,24 @@ import FormModal from "./Modal";
 
 interface Props {
   vehicleTypes: VehicleType[];
-  updateVehicleTypes: Function;
+  setInitials: Function;
 }
 
-export default function Types({ vehicleTypes, updateVehicleTypes }: Props) {
-  const [newVehicleType, setNewVehicleType] = useState({ name: "", id: 0 });
+export default function Types({ vehicleTypes, setInitials }: Props) {
+  const [newVehicleType, setNewVehicleType] = useState({
+    name: "",
+  });
   const [visible, setVisible] = useState(false);
 
   const showModal = () => {
     setVisible(!visible);
   };
 
-  const handleVehicleTypeAdd = () => {
+  const handleVehicleTypeAdd = async () => {
     //AD TO DB
-    saveVehicleType(newVehicleType);
-    updateVehicleTypes(newVehicleType);
+    await saveVehicleType(newVehicleType);
+    setInitials();
+    showModal();
   };
 
   const handleCancel = () => {
@@ -106,18 +109,23 @@ export default function Types({ vehicleTypes, updateVehicleTypes }: Props) {
         });
         // UPDATE TO DB
         updateVehicleType(newData[index]);
-        updateVehicleTypes(newData);
+        setInitials();
         setEditingKey(0);
       } else {
         newData.push(row);
         // UPDATE TO DB
         updateVehicleType(newData[index]);
-        updateVehicleTypes(newData);
+        setInitials();
         setEditingKey(0);
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+  };
+
+  const handleDelete = async (record: VehicleType) => {
+    await deleteVehicleType(record);
+    setInitials();
   };
 
   const columns = [
@@ -155,10 +163,7 @@ export default function Types({ vehicleTypes, updateVehicleTypes }: Props) {
             <Typography.Link
               onClick={() => {
                 // DELETE FROM DB
-                deleteVehicleType(record);
-                updateVehicleTypes(
-                  vehicleTypes.filter((type) => type.id !== record.id)
-                );
+                handleDelete(record);
               }}>
               Delete
             </Typography.Link>
